@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type Player struct {
@@ -16,27 +17,39 @@ type Player struct {
 }
 
 func (p *Player) Update(game *Game) error {
-
-	// floor := float64(game.screenHeight - p.Height)
-
-	// if p.Y < floor {
-	// 	p.YVelocity += 0.1
-	// }
-
-	if ebiten.IsKeyPressed(ebiten.KeyW) || ebiten.IsKeyPressed(ebiten.KeyUp) {
+	if ebiten.IsKeyPressed(ebiten.KeyW) {
 		p.Y -= 1
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyA) || ebiten.IsKeyPressed(ebiten.KeyLeft) {
+	if ebiten.IsKeyPressed(ebiten.KeyA) {
 		p.X -= 1
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyS) || ebiten.IsKeyPressed(ebiten.KeyDown) {
+	if ebiten.IsKeyPressed(ebiten.KeyS) {
 		p.Y += 1
 	}
 
-	if ebiten.IsKeyPressed(ebiten.KeyD) || ebiten.IsKeyPressed(ebiten.KeyRight) {
+	if ebiten.IsKeyPressed(ebiten.KeyD) {
 		p.X += 1
+	}
+
+	x := p.X + float64(p.Width - 8) / 2
+	y := p.Y + float64(p.Height - 8) / 2
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
+		game.projectiles = append(game.projectiles, NewProjectile(x, y, 0, -1, game.loadImage("assets/player.png")))
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) {
+		game.projectiles = append(game.projectiles, NewProjectile(x, y, -1, 0, game.loadImage("assets/player.png")))
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyDown) {
+		game.projectiles = append(game.projectiles, NewProjectile(x, y, 0, 1, game.loadImage("assets/player.png")))
+	}
+
+	if inpututil.IsKeyJustPressed(ebiten.KeyRight) {
+		game.projectiles = append(game.projectiles, NewProjectile(x, y, 1, 0, game.loadImage("assets/player.png")))
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
