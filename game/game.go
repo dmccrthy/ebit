@@ -15,7 +15,7 @@ type Game struct {
 	fs           embed.FS
 	screenWidth  int
 	screenHeight int
-	player       Player
+	player       *Player
 	projectiles  []*Projectile
 }
 
@@ -24,10 +24,10 @@ func NewGame(fs embed.FS) *Game {
 }
 
 func (g *Game) Update() error {
-	g.player.Update(g)
+	g.player.Update()
 
 	for _, p := range g.projectiles {
-		p.Update(g)
+		p.Update()
 	}
 
 	return nil
@@ -35,7 +35,7 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{100, 100, 100, 0})
-	
+
 	g.player.Draw(screen)
 
 	for _, p := range g.projectiles {
@@ -47,7 +47,7 @@ func (g *Game) Layout(outsideWidth, outsideHeight int) (screenWidth, screenHeigh
 	return g.screenWidth, g.screenHeight
 }
 
-func (g *Game) loadImage(path string) *ebiten.Image {
+func (g *Game) LoadImage(path string) *ebiten.Image {
 	file, err := g.fs.Open(path)
 	if err != nil {
 		log.Panic(err)
@@ -63,11 +63,9 @@ func (g *Game) loadImage(path string) *ebiten.Image {
 
 func (g *Game) Init() {
 	g.screenWidth, g.screenHeight = 128, 72
-	g.player = Player{}
-	g.player.Image = g.loadImage("assets/player.png")
-	g.player.Width = 16
-	g.player.Height = 16
+	g.player = NewPlayer(g)
 
+	// TODO: remove
 	x, y := ebiten.Monitor().Size()
 	fmt.Printf("%d\n", (x/y)*2)
 

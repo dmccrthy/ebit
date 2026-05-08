@@ -9,6 +9,7 @@ import (
 )
 
 type Player struct {
+	*Game
 	X      float64
 	Y      float64
 	Width  int
@@ -16,7 +17,16 @@ type Player struct {
 	Image  *ebiten.Image
 }
 
-func (p *Player) Update(game *Game) error {
+func NewPlayer(game *Game) *Player {
+	p := &Player{Game: game}
+	p.Width = 16
+	p.Height = 16
+	p.Image = p.Game.LoadImage("assets/player.png")
+
+	return p
+}
+
+func (p *Player) Update() error {
 	if ebiten.IsKeyPressed(ebiten.KeyW) {
 		p.Y -= 1
 	}
@@ -33,23 +43,24 @@ func (p *Player) Update(game *Game) error {
 		p.X += 1
 	}
 
-	x := p.X + float64(p.Width - 8) / 2
-	y := p.Y + float64(p.Height - 8) / 2
+	x := p.X + float64(p.Width-4)/2
+	y := p.Y + float64(p.Height-4)/2
+	img := p.Game.LoadImage("assets/bullet.png")
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
-		game.projectiles = append(game.projectiles, NewProjectile(x, y, 0, -1, game.loadImage("assets/player.png")))
+		p.Game.projectiles = append(p.Game.projectiles, NewProjectile(x, y, 0, -2, img))
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) {
-		game.projectiles = append(game.projectiles, NewProjectile(x, y, -1, 0, game.loadImage("assets/player.png")))
+		p.Game.projectiles = append(p.Game.projectiles, NewProjectile(x, y, -2, 0, img))
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyDown) {
-		game.projectiles = append(game.projectiles, NewProjectile(x, y, 0, 1, game.loadImage("assets/player.png")))
+		p.Game.projectiles = append(p.Game.projectiles, NewProjectile(x, y, 0, 2, img))
 	}
 
 	if inpututil.IsKeyJustPressed(ebiten.KeyRight) {
-		game.projectiles = append(game.projectiles, NewProjectile(x, y, 1, 0, game.loadImage("assets/player.png")))
+		p.Game.projectiles = append(p.Game.projectiles, NewProjectile(x, y, 2, 0, img))
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
