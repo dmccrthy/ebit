@@ -5,20 +5,21 @@ import (
 	"os"
 
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/inpututil"
 )
 
 type Player struct {
 	*Game
-	X      float64
-	Y      float64
-	Width  int
-	Height int
-	Image  *ebiten.Image
+	X            float64
+	Y            float64
+	Width        int
+	Height       int
+	Image        *ebiten.Image
+	ShotCooldown int
+	ShotRate     int
 }
 
 func NewPlayer(game *Game) *Player {
-	p := &Player{Game: game}
+	p := &Player{Game: game, ShotRate: 30}
 	p.Width = 16
 	p.Height = 16
 	p.Image = p.Game.LoadImage("assets/player.png")
@@ -26,7 +27,7 @@ func NewPlayer(game *Game) *Player {
 	return p
 }
 
-func (p *Player) Update() error {
+func (p *Player) Update() {
 	if ebiten.IsKeyPressed(ebiten.KeyW) {
 		p.Y -= 1
 	}
@@ -43,32 +44,25 @@ func (p *Player) Update() error {
 		p.X += 1
 	}
 
-	x := p.X + float64(p.Width-4)/2
-	y := p.Y + float64(p.Height-4)/2
-	img := p.Game.LoadImage("assets/bullet.png")
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyUp) {
-		p.Game.projectiles = append(p.Game.projectiles, NewProjectile(x, y, 0, -2, img))
+	// handle shooting
+	if p.ShotCooldown > 0 {
+		p.ShotCooldown--
 	}
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyLeft) {
-		p.Game.projectiles = append(p.Game.projectiles, NewProjectile(x, y, -2, 0, img))
-	}
+	if ebiten.IsMouseButtonPressed(ebiten.MouseButtonLeft) && p.ShotCooldown == 0 {
+		x := p.X + float64(p.Width-4)/2
+		y := p.Y + float64(p.Height-4)/2
+		img := p.Game.LoadImage("assets/bullet.png")
+		mouseX, mouseY := ebiten.CursorPosition()
 
-	if inpututil.IsKeyJustPressed(ebiten.KeyDown) {
-		p.Game.projectiles = append(p.Game.projectiles, NewProjectile(x, y, 0, 2, img))
-	}
-
-	if inpututil.IsKeyJustPressed(ebiten.KeyRight) {
-		p.Game.projectiles = append(p.Game.projectiles, NewProjectile(x, y, 2, 0, img))
+		p.Game.projectiles = append(p.Game.projectiles, NewProjectile(x, y, float64(mouseX), float64(mouseY), 2, img))
+		p.ShotCooldown = p.ShotRate
 	}
 
 	if ebiten.IsKeyPressed(ebiten.KeyEscape) {
 		log.Print("Shutting Down")
 		os.Exit(0)
 	}
-
-	return nil
 }
 
 func (p *Player) Draw(screen *ebiten.Image) {
